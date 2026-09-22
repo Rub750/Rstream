@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rstream - Votre plateforme de streaming préférée">
+    <title>Rstream - Streaming de qualité</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-container">
+                <div class="logo">
+                    <i class="fas fa-film"></i>
+                    <span id="site-name">Rstream</span>
+                </div>
+                <nav class="nav">
+                    <a href="#" class="nav-link active" data-section="home">
+                        <i class="fas fa-home"></i>
+                        <span>Accueil</span>
+                    </a>
+                    <a href="#" class="nav-link" data-section="categories">
+                        <i class="fas fa-bars"></i>
+                        <span>Catégories</span>
+                    </a>
+                    <a href="#" class="nav-link" data-section="recent">
+                        <i class="fas fa-clock"></i>
+                        <span>Récents</span>
+                    </a>
+                    <a href="#" class="nav-link" data-section="popular">
+                        <i class="fas fa-fire"></i>
+                        <span>Populaires</span>
+                    </a>
+                </nav>
+                <div class="header-actions">
+                    <div class="search-box">
+                        <input type="text" id="search-input" placeholder="Rechercher...">
+                        <button id="search-btn"><i class="fas fa-search"></i></button>
+                    </div>
+                    <button class="theme-toggle" id="theme-toggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Hero Section -->
+            <section id="hero" class="hero-section">
+                <div class="hero-container">
+                    <div class="hero-content">
+                        <h1 id="hero-title">Bienvenue sur Rstream</h1>
+                        <p id="hero-description">Découvrez des milliers de contenus de qualité</p>
+                        <div class="hero-stats">
+                            <div class="stat">
+                                <span class="stat-value" id="total-content">0</span>
+                                <span class="stat-label">Contenus</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-value" id="total-views">0</span>
+                                <span class="stat-label">Vues</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-value" id="total-categories">0</span>
+                                <span class="stat-label">Catégories</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Featured Content -->
+            <section id="featured" class="section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-star"></i>
+                        À la une
+                    </h2>
+                    <a href="#" class="see-all" data-section="all-featured">Voir tout</a>
+                </div>
+                <div class="content-grid" id="featured-content">
+                    <!-- Featured content will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Categories Section -->
+            <section id="categories-section" class="section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-folder-open"></i>
+                        Catégories
+                    </h2>
+                </div>
+                <div class="categories-grid" id="categories-grid">
+                    <!-- Categories will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Recent Content -->
+            <section id="recent" class="section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-clock"></i>
+                        Contenus récents
+                    </h2>
+                    <a href="#" class="see-all" data-section="all-recent">Voir tout</a>
+                </div>
+                <div class="content-grid" id="recent-content">
+                    <!-- Recent content will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Popular Content -->
+            <section id="popular" class="section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-fire"></i>
+                        Populaires
+                    </h2>
+                    <a href="#" class="see-all" data-section="all-popular">Voir tout</a>
+                </div>
+                <div class="content-grid" id="popular-content">
+                    <!-- Popular content will be loaded here -->
+                </div>
+            </section>
+
+            <!-- All Content Sections (hidden by default) -->
+            <section id="all-featured" class="section hidden">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-star"></i>
+                        Tous les contenus à la une
+                    </h2>
+                    <button class="back-btn" data-back="home"><i class="fas fa-arrow-left"></i> Retour</button>
+                </div>
+                <div class="content-grid" id="all-featured-content"></div>
+            </section>
+
+            <section id="all-recent" class="section hidden">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-clock"></i>
+                        Tous les contenus récents
+                    </h2>
+                    <button class="back-btn" data-back="home"><i class="fas fa-arrow-left"></i> Retour</button>
+                </div>
+                <div class="content-grid" id="all-recent-content"></div>
+            </section>
+
+            <section id="all-popular" class="section hidden">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-fire"></i>
+                        Tous les contenus populaires
+                    </h2>
+                    <button class="back-btn" data-back="home"><i class="fas fa-arrow-left"></i> Retour</button>
+                </div>
+                <div class="content-grid" id="all-popular-content"></div>
+            </section>
+
+            <!-- Category Content Section -->
+            <section id="category-content" class="section hidden">
+                <div class="section-header">
+                    <h2 class="section-title" id="category-title">
+                        <i class="fas fa-folder"></i>
+                        <span>Catégorie: </span>
+                    </h2>
+                    <button class="back-btn" data-back="categories"><i class="fas fa-arrow-left"></i> Retour</button>
+                </div>
+                <div class="content-grid" id="category-content-grid"></div>
+            </section>
+
+            <!-- Search Results Section -->
+            <section id="search-results" class="section hidden">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-search"></i>
+                        Résultats de recherche
+                    </h2>
+                    <button class="back-btn" data-back="home"><i class="fas fa-arrow-left"></i> Retour</button>
+                </div>
+                <div class="content-grid" id="search-results-grid"></div>
+            </section>
+        </main>
+
+        <!-- Video Player Modal -->
+        <div id="video-modal" class="modal">
+            <div class="modal-content">
+                <button class="modal-close" id="modal-close"><i class="fas fa-times"></i></button>
+                <div class="video-container">
+                    <video id="video-player" controls autoplay>
+                        <source id="video-source" type="video/mp4">
+                        Votre navigateur ne supporte pas la vidéo HTML5.
+                    </video>
+                </div>
+                <div class="video-info">
+                    <h3 id="video-title"></h3>
+                    <p id="video-description"></p>
+                    <div class="video-meta">
+                        <span id="video-category"></span>
+                        <span id="video-views"></span>
+                        <span id="video-date"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Maintenance Modal -->
+        <div id="maintenance-modal" class="modal">
+            <div class="modal-content maintenance-content">
+                <div class="maintenance-icon">
+                    <i class="fas fa-tools"></i>
+                </div>
+                <h2>Site en maintenance</h2>
+                <p id="maintenance-message">Site en maintenance, merci de revenir plus tard.</p>
+                <button class="btn-primary" id="refresh-btn">
+                    <i class="fas fa-sync-alt"></i> Rafraîchir
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <i class="fas fa-film"></i>
+                    <span id="footer-site-name">Rstream</span>
+                </div>
+                <p id="footer-description">Votre plateforme de streaming préférée</p>
+                <div class="footer-links">
+                    <a href="#">À propos</a>
+                    <a href="#">Conditions d'utilisation</a>
+                    <a href="#">Politique de confidentialité</a>
+                    <a href="#">Contact</a>
+                </div>
+                <div class="footer-social">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; <span id="current-year"></span> Rstream. Tous droits réservés.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
