@@ -29,9 +29,17 @@ app.use('/api/settings', settingsRoutes);
 app.use('/streaming', express.static(path.join(__dirname, '../frontend/streaming')));
 app.use('/admin', express.static(path.join(__dirname, '../frontend/admin')));
 
+// Serve uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+
 // Root redirect
 app.get('/', (req, res) => {
   res.redirect('/streaming');
+});
+
+// API root
+app.get('/api', (req, res) => {
+  res.json({ message: 'Rstream API', version: '1.0.0' });
 });
 
 // Error handling middleware

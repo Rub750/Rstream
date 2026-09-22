@@ -40,6 +40,11 @@ router.post('/', async (req, res) => {
   try {
     const { name, description, color, icon, order_index } = req.body;
     
+    // Validate required fields
+    if (!name) {
+      return res.status(400).json({ error: 'Category name is required' });
+    }
+    
     const category = {
       name,
       description: description || '',
@@ -51,7 +56,8 @@ router.post('/', async (req, res) => {
     const newCategory = await Category.create(category);
     res.status(201).json(newCategory);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Category creation error:', err);
+    res.status(500).json({ error: err.message || 'Failed to create category' });
   }
 });
 

@@ -82,6 +82,11 @@ router.post('/', async (req, res) => {
     const { title, description, category_id, video_url, thumbnail_url, 
             duration, quality, is_featured, is_active, tags, release_date } = req.body;
     
+    // Validate required fields
+    if (!title || !video_url) {
+      return res.status(400).json({ error: 'Title and video URL are required' });
+    }
+    
     // Handle file upload
     let uploadedThumbnail = thumbnail_url;
     if (req.files && req.files.thumbnail) {
@@ -90,7 +95,7 @@ router.post('/', async (req, res) => {
       const thumbnailPath = path.join(UPLOAD_DIR, thumbnailName);
       
       await thumbnail.mv(thumbnailPath);
-      uploadedThumbnail = `/public/uploads/${thumbnailName}`;
+      uploadedThumbnail = `/uploads/${thumbnailName}`;
     }
     
     // Handle video upload
@@ -101,19 +106,19 @@ router.post('/', async (req, res) => {
       const videoPath = path.join(UPLOAD_DIR, videoName);
       
       await video.mv(videoPath);
-      uploadedVideo = `/public/uploads/${videoName}`;
+      uploadedVideo = `/uploads/${videoName}`;
     }
     
     const content = {
       title,
-      description,
+      description: description || '',
       category_id: category_id || null,
       video_url: uploadedVideo,
       thumbnail_url: uploadedThumbnail,
-      duration,
+      duration: duration || null,
       quality: quality || 'HD',
-      is_featured: is_featured || false,
-      is_active: is_active !== undefined ? is_active : true,
+      is_featured: is_featured === true || is_featured === 'true' || false,
+      is_active: is_active !== false && is_active !== 'false',
       tags: tags || '',
       release_date: release_date || null
     };
@@ -121,7 +126,8 @@ router.post('/', async (req, res) => {
     const newContent = await Content.create(content);
     res.status(201).json(newContent);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Content creation error:', err);
+    res.status(500).json({ error: err.message || 'Failed to create content' });
   }
 });
 
@@ -138,6 +144,11 @@ router.put('/:id', async (req, res) => {
     const { title, description, category_id, video_url, thumbnail_url, 
             duration, quality, is_featured, is_active, tags, release_date } = req.body;
     
+    // Validate required fields
+    if (!title || !video_url) {
+      return res.status(400).json({ error: 'Title and video URL are required' });
+    }
+    
     // Handle file upload
     let uploadedThumbnail = thumbnail_url || content.thumbnail_url;
     if (req.files && req.files.thumbnail) {
@@ -146,7 +157,7 @@ router.put('/:id', async (req, res) => {
       const thumbnailPath = path.join(UPLOAD_DIR, thumbnailName);
       
       await thumbnail.mv(thumbnailPath);
-      uploadedThumbnail = `/public/uploads/${thumbnailName}`;
+      uploadedThumbnail = `/uploads/${thumbnailName}`;
     }
     
     // Handle video upload
@@ -157,27 +168,28 @@ router.put('/:id', async (req, res) => {
       const videoPath = path.join(UPLOAD_DIR, videoName);
       
       await video.mv(videoPath);
-      uploadedVideo = `/public/uploads/${videoName}`;
+      uploadedVideo = `/uploads/${videoName}`;
     }
     
     const updatedContent = {
       title,
-      description,
-      category_id: category_id || null,
+      description: description || content.description || '',
+      category_id: category_id || content.category_id,
       video_url: uploadedVideo,
       thumbnail_url: uploadedThumbnail,
-      duration,
-      quality: quality || content.quality,
-      is_featured: is_featured !== undefined ? is_featured : content.is_featured,
-      is_active: is_active !== undefined ? is_active : content.is_active,
-      tags: tags || content.tags,
+      duration: duration || content.duration,
+      quality: quality || content.quality || 'HD',
+      is_featured: is_featured !== undefined ? (is_featured === true || is_featured === 'true') : content.is_featured,
+      is_active: is_active !== undefined ? (is_active !== false && is_active !== 'false') : content.is_active,
+      tags: tags || content.tags || '',
       release_date: release_date || content.release_date
     };
     
     const result = await Content.update(id, updatedContent);
     res.json(result);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Content update error:', err);
+    res.status(500).json({ error: err.message || 'Failed to update content' });
   }
 });
 

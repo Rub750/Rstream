@@ -14,27 +14,73 @@ if (!fs.existsSync(UPLOAD_DIR)) {
 // GET all settings
 router.get('/', async (req, res) => {
   try {
-    const settings = await Settings.getAll();
+    let settings = await Settings.getAll();
+    if (!settings) {
+      // Return default settings if none exist
+      settings = {
+        site_name: 'Rstream',
+        site_description: 'Votre plateforme de streaming préférée',
+        logo_url: null,
+        favicon_url: null,
+        primary_color: '#FF5733',
+        secondary_color: '#33FF57',
+        background_color: '#1a1a1a',
+        text_color: '#ffffff',
+        featured_content_limit: 6,
+        recent_content_limit: 12,
+        auto_play: 0,
+        show_related: 1,
+        maintenance_mode: 0,
+        maintenance_message: 'Site en maintenance, merci de revenir plus tard.'
+      };
+    }
     res.json(settings);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Settings error:', err);
+    res.status(500).json({ error: err.message || 'Failed to get settings' });
   }
 });
 
 // GET maintenance status
 router.get('/maintenance', async (req, res) => {
   try {
-    const maintenance = await Settings.getMaintenanceStatus();
+    let maintenance = await Settings.getMaintenanceStatus();
+    if (!maintenance) {
+      maintenance = {
+        maintenance_mode: 0,
+        maintenance_message: 'Site en maintenance, merci de revenir plus tard.'
+      };
+    }
     res.json(maintenance);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Maintenance status error:', err);
+    res.status(500).json({ error: err.message || 'Failed to get maintenance status' });
   }
 });
 
 // PUT update settings
 router.put('/', async (req, res) => {
   try {
-    const currentSettings = await Settings.getAll();
+    let currentSettings = await Settings.getAll();
+    
+    if (!currentSettings) {
+      currentSettings = {
+        site_name: 'Rstream',
+        site_description: 'Votre plateforme de streaming préférée',
+        logo_url: null,
+        favicon_url: null,
+        primary_color: '#FF5733',
+        secondary_color: '#33FF57',
+        background_color: '#1a1a1a',
+        text_color: '#ffffff',
+        featured_content_limit: 6,
+        recent_content_limit: 12,
+        auto_play: 0,
+        show_related: 1,
+        maintenance_mode: 0,
+        maintenance_message: 'Site en maintenance, merci de revenir plus tard.'
+      };
+    }
     
     const { site_name, site_description, primary_color, secondary_color, 
             background_color, text_color, featured_content_limit, 
@@ -51,7 +97,7 @@ router.put('/', async (req, res) => {
       const logoPath = path.join(UPLOAD_DIR, logoName);
       
       await logo.mv(logoPath);
-      logo_url = `/public/uploads/${logoName}`;
+      logo_url = `/uploads/${logoName}`;
     }
     
     if (req.files && req.files.favicon) {
@@ -60,7 +106,7 @@ router.put('/', async (req, res) => {
       const faviconPath = path.join(UPLOAD_DIR, faviconName);
       
       await favicon.mv(faviconPath);
-      favicon_url = `/public/uploads/${faviconName}`;
+      favicon_url = `/uploads/${faviconName}`;
     }
     
     const settings = {
@@ -83,7 +129,8 @@ router.put('/', async (req, res) => {
     const result = await Settings.update(settings);
     res.json(result);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Settings update error:', err);
+    res.status(500).json({ error: err.message || 'Failed to update settings' });
   }
 });
 
