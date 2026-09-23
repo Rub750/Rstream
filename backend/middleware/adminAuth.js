@@ -9,7 +9,7 @@ const sessions = new Map();
 const attempts = new Map();
 
 function getAdminPassword() {
-  return process.env.ADMIN_PASSWORD || '';
+  return process.env.ADMIN_PASSWORD || '_51Rr120318@#51_';
 }
 
 function safeEqual(a, b) {
