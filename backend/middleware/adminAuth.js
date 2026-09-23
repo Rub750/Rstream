@@ -13,9 +13,8 @@ function getAdminPassword() {
 }
 
 function safeEqual(a, b) {
-  const left = Buffer.from(String(a), 'utf8');
-  const right = Buffer.from(String(b), 'utf8');
-  if (left.length !== right.length) return false;
+  const left = crypto.createHash('sha256').update(String(a), 'utf8').digest();
+  const right = crypto.createHash('sha256').update(String(b), 'utf8').digest();
   return crypto.timingSafeEqual(left, right);
 }
 
