@@ -22,7 +22,7 @@ const allowedOrigins = new Set([
 
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowedOrigins.has(origin)) return callback(null, true);
+    if (!origin || allowedOrigins.has(origin) || origin === `${req.protocol}://${req.get('host')}`) return callback(null, true);
     return callback(new Error('CORS origin not allowed'));
   },
   credentials: true
