@@ -5,7 +5,7 @@
 
 // Configuration de l'API
 const API_CONFIG = {
-    BASE_URL: window.location.origin + '/api',
+    BASE_URL: (window.RSTREAM_API_ORIGIN || (['3000', '3001'].includes(window.location.port) ? window.location.protocol + '//' + window.location.hostname + ':3002' : window.location.origin)) + '/api',
     TIMEOUT: 10000, // 10 secondes
     RETRY_COUNT: 3,
     RETRY_DELAY: 1000 // 1 seconde
@@ -54,7 +54,7 @@ const DEFAULT_CATEGORIES = [
     { name: 'Films', description: 'Longs métrages et films', color: '#FF5733', icon: 'film', order_index: 1 },
     { name: 'Séries', description: 'Séries télévisées', color: '#33FF57', icon: 'tv', order_index: 2 },
     { name: 'Documentaires', description: 'Documentaires éducatifs', color: '#3357FF', icon: 'book', order_index: 3 },
-    { name: 'Animations', description: 'Dessins animés et anime', color: '#F3FF33', icon: 'animation', order_index: 4 },
+    { name: 'Animations', description: 'Dessins animés et anime', color: '#F3FF33', icon: 'film', order_index: 4 },
     { name: 'Musique', description: 'Clips musicaux et concerts', color: '#FF33F3', icon: 'music', order_index: 5 }
 ];
 

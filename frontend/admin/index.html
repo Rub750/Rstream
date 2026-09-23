@@ -24,31 +24,31 @@
             <nav class="sidebar-nav">
                 <ul class="nav-list">
                     <li class="nav-item active" data-section="dashboard">
-                        <a href="#" class="nav-link">
+                        <a href="#dashboard" class="nav-link">
                             <i class="fas fa-home"></i>
                             <span>Tableau de bord</span>
                         </a>
                     </li>
                     <li class="nav-item" data-section="content">
-                        <a href="#" class="nav-link">
+                        <a href="#content" class="nav-link">
                             <i class="fas fa-film"></i>
                             <span>Contenus</span>
                         </a>
                     </li>
                     <li class="nav-item" data-section="categories">
-                        <a href="#" class="nav-link">
+                        <a href="#categories" class="nav-link">
                             <i class="fas fa-folder-open"></i>
                             <span>Catégories</span>
                         </a>
                     </li>
                     <li class="nav-item" data-section="settings">
-                        <a href="#" class="nav-link">
+                        <a href="#settings" class="nav-link">
                             <i class="fas fa-cog"></i>
                             <span>Paramètres</span>
                         </a>
                     </li>
                     <li class="nav-item" data-section="stats">
-                        <a href="#" class="nav-link">
+                        <a href="#stats" class="nav-link">
                             <i class="fas fa-chart-bar"></i>
                             <span>Statistiques</span>
                         </a>
@@ -57,13 +57,13 @@
                 <div class="nav-divider"></div>
                 <ul class="nav-list nav-bottom">
                     <li class="nav-item">
-                        <a href="../streaming/" class="nav-link" target="_blank">
+                        <a href="../streaming/" class="nav-link" id="view-site-link" target="_blank">
                             <i class="fas fa-external-link-alt"></i>
                             <span>Voir le site</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link logout-link" id="logout-link">
+                        <a href="#logout" class="nav-link logout-link" id="logout-link">
                             <i class="fas fa-sign-out-alt"></i>
                             <span>Déconnexion</span>
                         </a>
@@ -399,18 +399,18 @@
                         <div class="settings-form">
                             <div class="form-group">
                                 <label for="site-name">Nom du site</label>
-                                <input type="text" id="site-name" placeholder="Nom du site">
+                                <input type="text" id="site-name" name="site_name" placeholder="Nom du site">
                                 <p class="form-hint">Ce nom apparaîtra dans l'en-tête et le titre du site</p>
                             </div>
                             <div class="form-group">
                                 <label for="site-description">Description du site</label>
-                                <textarea id="site-description" rows="3" placeholder="Description du site"></textarea>
+                                <textarea id="site-description" name="site_description" rows="3" placeholder="Description du site"></textarea>
                                 <p class="form-hint">Description qui apparaîtra dans les méta-données et l'hero section</p>
                             </div>
                             <div class="form-group">
                                 <label for="site-logo">Logo du site</label>
                                 <div class="file-upload">
-                                    <input type="file" id="site-logo" accept="image/*">
+                                    <input type="file" id="site-logo" name="logo" accept="image/*">
                                     <label for="site-logo" class="file-upload-label">
                                         <i class="fas fa-upload"></i>
                                         <span id="logo-file-name">Aucun fichier sélectionné</span>
@@ -424,7 +424,7 @@
                             <div class="form-group">
                                 <label for="site-favicon">Favicon du site</label>
                                 <div class="file-upload">
-                                    <input type="file" id="site-favicon" accept="image/*">
+                                    <input type="file" id="site-favicon" name="favicon" accept="image/*">
                                     <label for="site-favicon" class="file-upload-label">
                                         <i class="fas fa-upload"></i>
                                         <span id="favicon-file-name">Aucun fichier sélectionné</span>
@@ -445,28 +445,28 @@
                             <div class="form-group">
                                 <label>Couleur principale</label>
                                 <div class="color-picker">
-                                    <input type="color" id="primary-color" value="#FF5733">
+                                    <input type="color" id="primary-color" name="primary_color" value="#FF5733">
                                     <span id="primary-color-value">#FF5733</span>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Couleur secondaire</label>
                                 <div class="color-picker">
-                                    <input type="color" id="secondary-color" value="#33FF57">
+                                    <input type="color" id="secondary-color" name="secondary_color" value="#33FF57">
                                     <span id="secondary-color-value">#33FF57</span>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Couleur de fond</label>
                                 <div class="color-picker">
-                                    <input type="color" id="background-color" value="#1a1a1a">
+                                    <input type="color" id="background-color" name="background_color" value="#1a1a1a">
                                     <span id="background-color-value">#1a1a1a</span>
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Couleur du texte</label>
                                 <div class="color-picker">
-                                    <input type="color" id="text-color" value="#ffffff">
+                                    <input type="color" id="text-color" name="text_color" value="#ffffff">
                                     <span id="text-color-value">#ffffff</span>
                                 </div>
                             </div>
@@ -493,18 +493,18 @@
                         <div class="settings-form">
                             <div class="form-group">
                                 <label for="featured-limit">Nombre de contenus en vedette</label>
-                                <input type="number" id="featured-limit" min="1" max="20" value="6">
+                                <input type="number" id="featured-limit" name="featured_content_limit" min="1" max="20" value="6">
                                 <p class="form-hint">Nombre de contenus affichés dans la section "À la une"</p>
                             </div>
                             <div class="form-group">
                                 <label for="recent-limit">Nombre de contenus récents</label>
-                                <input type="number" id="recent-limit" min="1" max="50" value="12">
+                                <input type="number" id="recent-limit" name="recent_content_limit" min="1" max="50" value="12">
                                 <p class="form-hint">Nombre de contenus affichés dans la section "Récents"</p>
                             </div>
                             <div class="form-group">
                                 <label for="auto-play">Lecture automatique</label>
                                 <div class="toggle-switch">
-                                    <input type="checkbox" id="auto-play">
+                                    <input type="checkbox" id="auto-play" name="auto_play">
                                     <span class="toggle-slider"></span>
                                 </div>
                                 <p class="form-hint">Activer la lecture automatique des vidéos</p>
@@ -512,7 +512,7 @@
                             <div class="form-group">
                                 <label for="show-related">Afficher les contenus similaires</label>
                                 <div class="toggle-switch">
-                                    <input type="checkbox" id="show-related" checked>
+                                    <input type="checkbox" id="show-related" name="show_related" checked>
                                     <span class="toggle-slider"></span>
                                 </div>
                                 <p class="form-hint">Afficher les contenus similaires après la lecture</p>
@@ -527,14 +527,14 @@
                             <div class="form-group">
                                 <label>Mode maintenance</label>
                                 <div class="toggle-switch">
-                                    <input type="checkbox" id="maintenance-mode">
+                                    <input type="checkbox" id="maintenance-mode" name="maintenance_mode">
                                     <span class="toggle-slider"></span>
                                 </div>
                                 <p class="form-hint">Activer le mode maintenance pour le site public</p>
                             </div>
                             <div class="form-group">
                                 <label for="maintenance-message">Message de maintenance</label>
-                                <textarea id="maintenance-message" rows="3" placeholder="Message affiché aux visiteurs pendant la maintenance"></textarea>
+                                <textarea id="maintenance-message" name="maintenance_message" rows="3" placeholder="Message affiché aux visiteurs pendant la maintenance"></textarea>
                             </div>
                             <div class="form-group warning-box">
                                 <i class="fas fa-exclamation-triangle"></i>
@@ -583,7 +583,7 @@
                         </div>
                         <div class="stat-info">
                             <span class="stat-value" id="stats-total-plays">0</span>
-                            <span class="stat-label">Lectures totales</span>
+                            <span class="stat-label">Contenus actifs</span>
                         </div>
                     </div>
                     <div class="stat-card large">
@@ -592,7 +592,7 @@
                         </div>
                         <div class="stat-info">
                             <span class="stat-value" id="stats-unique-visitors">0</span>
-                            <span class="stat-label">Visiteurs uniques</span>
+                            <span class="stat-label">Catégories actives</span>
                         </div>
                     </div>
                 </div>
@@ -601,7 +601,7 @@
                     <div class="chart-card large">
                         <h3 class="chart-title">
                             <i class="fas fa-chart-area"></i>
-                            Vues par jour
+                            Vues par contenu
                         </h3>
                         <canvas id="views-chart"></canvas>
                     </div>
@@ -666,32 +666,32 @@
                     <button class="modal-close" id="content-modal-close"><i class="fas fa-times"></i></button>
                 </div>
                 <form id="content-form" class="modal-form">
-                    <input type="hidden" id="content-id">
+                    <input type="hidden" id="content-id" name="id">
                     <div class="form-row">
                         <div class="form-group">
                             <label for="content-title">Titre *</label>
-                            <input type="text" id="content-title" required placeholder="Titre du contenu">
+                            <input type="text" id="content-title" name="title" required placeholder="Titre du contenu">
                         </div>
                         <div class="form-group">
                             <label for="content-category">Catégorie</label>
-                            <select id="content-category">
+                            <select id="content-category" name="category_id">
                                 <option value="">Aucune catégorie</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="content-description">Description</label>
-                        <textarea id="content-description" rows="3" placeholder="Description du contenu"></textarea>
+                        <textarea id="content-description" name="description" rows="3" placeholder="Description du contenu"></textarea>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="content-video-url">URL de la vidéo *</label>
-                            <input type="text" id="content-video-url" required placeholder="https://... ou /public/uploads/video.mp4">
+                            <input type="text" id="content-video-url" name="video_url" required placeholder="https://... ou /uploads/video.mp4">
                             <p class="form-hint">URL complète ou chemin relatif vers la vidéo</p>
                         </div>
                         <div class="form-group">
                             <label for="content-thumbnail-url">URL de la miniature</label>
-                            <input type="text" id="content-thumbnail-url" placeholder="https://... ou /public/uploads/thumbnail.jpg">
+                            <input type="text" id="content-thumbnail-url" name="thumbnail_url" placeholder="https://... ou /uploads/thumbnail.jpg">
                             <p class="form-hint">URL complète ou chemin relatif vers la miniature</p>
                         </div>
                     </div>
@@ -699,7 +699,7 @@
                         <div class="form-group">
                             <label>Télécharger une vidéo</label>
                             <div class="file-upload">
-                                <input type="file" id="content-video-file" accept="video/*">
+                                <input type="file" id="content-video-file" name="video" accept="video/*">
                                 <label for="content-video-file" class="file-upload-label">
                                     <i class="fas fa-upload"></i>
                                     <span id="video-file-name">Aucun fichier sélectionné</span>
@@ -709,7 +709,7 @@
                         <div class="form-group">
                             <label>Télécharger une miniature</label>
                             <div class="file-upload">
-                                <input type="file" id="content-thumbnail-file" accept="image/*">
+                                <input type="file" id="content-thumbnail-file" name="thumbnail" accept="image/*">
                                 <label for="content-thumbnail-file" class="file-upload-label">
                                     <i class="fas fa-upload"></i>
                                     <span id="thumbnail-file-name">Aucun fichier sélectionné</span>
@@ -720,12 +720,12 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="content-duration">Durée</label>
-                            <input type="text" id="content-duration" placeholder="01:30:00 ou 90m">
+                            <input type="text" id="content-duration" name="duration" placeholder="01:30:00 ou 90m">
                             <p class="form-hint">Format: HH:MM:SS ou MMm SSs</p>
                         </div>
                         <div class="form-group">
                             <label for="content-quality">Qualité</label>
-                            <select id="content-quality">
+                            <select id="content-quality" name="quality">
                                 <option value="SD">SD</option>
                                 <option value="HD" selected>HD</option>
                                 <option value="Full HD">Full HD</option>
@@ -736,26 +736,26 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="content-tags">Tags</label>
-                            <input type="text" id="content-tags" placeholder="action, aventure, 2024">
+                            <input type="text" id="content-tags" name="tags" placeholder="action, aventure, 2024">
                             <p class="form-hint">Séparés par des virgules</p>
                         </div>
                         <div class="form-group">
                             <label for="content-release-date">Date de sortie</label>
-                            <input type="date" id="content-release-date">
+                            <input type="date" id="content-release-date" name="release_date">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label>En vedette</label>
                             <div class="toggle-switch">
-                                <input type="checkbox" id="content-featured">
+                                <input type="checkbox" id="content-featured" name="is_featured">
                                 <span class="toggle-slider"></span>
                             </div>
                         </div>
                         <div class="form-group">
                             <label>Actif</label>
                             <div class="toggle-switch">
-                                <input type="checkbox" id="content-active" checked>
+                                <input type="checkbox" id="content-active" name="is_active" checked>
                                 <span class="toggle-slider"></span>
                             </div>
                         </div>
@@ -782,26 +782,26 @@
                     <button class="modal-close" id="category-modal-close"><i class="fas fa-times"></i></button>
                 </div>
                 <form id="category-form" class="modal-form">
-                    <input type="hidden" id="category-id">
+                    <input type="hidden" id="category-id" name="id">
                     <div class="form-group">
                         <label for="category-name">Nom *</label>
-                        <input type="text" id="category-name" required placeholder="Nom de la catégorie">
+                        <input type="text" id="category-name" name="name" required placeholder="Nom de la catégorie">
                     </div>
                     <div class="form-group">
                         <label for="category-description">Description</label>
-                        <textarea id="category-description" rows="2" placeholder="Description de la catégorie"></textarea>
+                        <textarea id="category-description" name="description" rows="2" placeholder="Description de la catégorie"></textarea>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="category-color">Couleur</label>
                             <div class="color-picker">
-                                <input type="color" id="category-color" value="#FF5733">
+                                <input type="color" id="category-color" name="color" value="#FF5733">
                                 <span id="category-color-value">#FF5733</span>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="category-icon">Icône</label>
-                            <select id="category-icon">
+                            <select id="category-icon" name="icon">
                                 <option value="film">film</option>
                                 <option value="tv">tv</option>
                                 <option value="book">book</option>
@@ -818,7 +818,7 @@
                     <div class="form-group">
                         <label>Actif</label>
                         <div class="toggle-switch">
-                            <input type="checkbox" id="category-active" checked>
+                            <input type="checkbox" id="category-active" name="is_active" checked>
                             <span class="toggle-slider"></span>
                         </div>
                     </div>

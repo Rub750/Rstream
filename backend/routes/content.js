@@ -1,129 +1,133 @@
 const express = require('express');
 const router = express.Router();
 const Content = require('../models/Content');
-const Category = require('../models/Category');
 const path = require('path');
 const fs = require('fs');
 
-// Upload directory
 const UPLOAD_DIR = path.join(__dirname, '../public/uploads');
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-}
+if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
-// GET all content
-router.get('/', async (req, res) => {
-  try {
-    const content = await Content.getAll();
-    res.json(content);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+const asBoolean = (value, fallback = false) => {
+  if (value === undefined || value === null || value === '') return fallback;
+  return value === true || value === 1 || value === '1' || value === 'true' || value === 'on';
+};
 
-// GET featured content
+const includeInactive = (req) => req.query.includeInactive === '1' || req.query.includeInactive === 'true';
+
+const moveUpload = async (file, prefix) => {
+  if (!file) return null;
+  const extension = path.extname(file.name || '').toLowerCase();
+  const safeExtension = /^[.a-z0-9]+$/.test(extension) ? extension : '';
+  const filename = `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}${safeExtension}`;
+  const filepath = path.join(UPLOAD_DIR, filename);
+  await file.mv(filepath);
+  return `/uploads/${filename}`;
+};
+
+// Fixed/static routes must be declared before /:id.
 router.get('/featured', async (req, res) => {
   try {
-    const content = await Content.getFeatured();
-    res.json(content);
+    const limit = req.query.limit || 6;
+    res.json(await Content.getFeatured(limit));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// GET recent content
 router.get('/recent', async (req, res) => {
   try {
-    const limit = req.query.limit || 12;
-    const content = await Content.getRecent(limit);
-    res.json(content);
+    res.json(await Content.getRecent(req.query.limit || 12));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// GET popular content
 router.get('/popular', async (req, res) => {
   try {
-    const limit = req.query.limit || 12;
-    const content = await Content.getPopular(limit);
-    res.json(content);
+    res.json(await Content.getPopular(req.query.limit || 12));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// GET content by category
 router.get('/category/:categoryId', async (req, res) => {
   try {
-    const content = await Content.getByCategory(req.params.categoryId);
-    res.json(content);
+    res.json(await Content.getByCategory(req.params.categoryId));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// GET content by ID
+router.get('/search', async (req, res) => {
+  try {
+    res.json(await Content.search(req.query.q || ''));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/search/:query', async (req, res) => {
+  try {
+    res.json(await Content.search(req.params.query));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/stats', async (req, res) => {
+  try {
+    res.json(await Content.getStats());
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/', async (req, res) => {
+  try {
+    res.json(await Content.getAll(includeInactive(req)));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get('/:id', async (req, res) => {
   try {
-    const content = await Content.getById(req.params.id);
-    if (!content) {
-      return res.status(404).json({ error: 'Content not found' });
-    }
+    const content = await Content.getById(req.params.id, includeInactive(req));
+    if (!content) return res.status(404).json({ error: 'Content not found' });
     res.json(content);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// POST new content
 router.post('/', async (req, res) => {
   try {
-    const { title, description, category_id, video_url, thumbnail_url, 
-            duration, quality, is_featured, is_active, tags, release_date } = req.body;
-    
-    // Validate required fields
-    if (!title || !video_url) {
+    const { title, description, category_id, video_url, thumbnail_url, duration, quality, is_featured, is_active, tags, release_date } = req.body;
+
+    let uploadedThumbnail = thumbnail_url || null;
+    let uploadedVideo = video_url || null;
+
+    if (req.files?.thumbnail) uploadedThumbnail = await moveUpload(req.files.thumbnail, 'thumbnail');
+    if (req.files?.video) uploadedVideo = await moveUpload(req.files.video, 'video');
+
+    if (!title?.trim() || !uploadedVideo?.trim()) {
       return res.status(400).json({ error: 'Title and video URL are required' });
     }
-    
-    // Handle file upload
-    let uploadedThumbnail = thumbnail_url;
-    if (req.files && req.files.thumbnail) {
-      const thumbnail = req.files.thumbnail;
-      const thumbnailName = `thumbnail_${Date.now()}${path.extname(thumbnail.name)}`;
-      const thumbnailPath = path.join(UPLOAD_DIR, thumbnailName);
-      
-      await thumbnail.mv(thumbnailPath);
-      uploadedThumbnail = `/uploads/${thumbnailName}`;
-    }
-    
-    // Handle video upload
-    let uploadedVideo = video_url;
-    if (req.files && req.files.video) {
-      const video = req.files.video;
-      const videoName = `video_${Date.now()}${path.extname(video.name)}`;
-      const videoPath = path.join(UPLOAD_DIR, videoName);
-      
-      await video.mv(videoPath);
-      uploadedVideo = `/uploads/${videoName}`;
-    }
-    
-    const content = {
-      title,
+
+    const newContent = await Content.create({
+      title: title.trim(),
       description: description || '',
-      category_id: category_id || null,
-      video_url: uploadedVideo,
+      category_id: category_id === '' ? null : category_id || null,
+      video_url: uploadedVideo.trim(),
       thumbnail_url: uploadedThumbnail,
       duration: duration || null,
       quality: quality || 'HD',
-      is_featured: is_featured === true || is_featured === 'true' || false,
-      is_active: is_active !== false && is_active !== 'false',
+      is_featured: asBoolean(is_featured),
+      is_active: is_active === undefined ? true : asBoolean(is_active, true),
       tags: tags || '',
       release_date: release_date || null
-    };
-    
-    const newContent = await Content.create(content);
+    });
+
     res.status(201).json(newContent);
   } catch (err) {
     console.error('Content creation error:', err);
@@ -131,113 +135,58 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT update content
 router.put('/:id', async (req, res) => {
   try {
     const id = req.params.id;
-    const content = await Content.getById(id);
-    
-    if (!content) {
-      return res.status(404).json({ error: 'Content not found' });
-    }
-    
-    const { title, description, category_id, video_url, thumbnail_url, 
-            duration, quality, is_featured, is_active, tags, release_date } = req.body;
-    
-    // Validate required fields
-    if (!title || !video_url) {
+    const current = await Content.getById(id, true);
+    if (!current) return res.status(404).json({ error: 'Content not found' });
+
+    let uploadedThumbnail = req.body.thumbnail_url !== undefined ? req.body.thumbnail_url : current.thumbnail_url;
+    let uploadedVideo = req.body.video_url !== undefined ? req.body.video_url : current.video_url;
+
+    if (req.files?.thumbnail) uploadedThumbnail = await moveUpload(req.files.thumbnail, 'thumbnail');
+    if (req.files?.video) uploadedVideo = await moveUpload(req.files.video, 'video');
+
+    if (!req.body.title?.trim() || !uploadedVideo?.trim()) {
       return res.status(400).json({ error: 'Title and video URL are required' });
     }
-    
-    // Handle file upload
-    let uploadedThumbnail = thumbnail_url || content.thumbnail_url;
-    if (req.files && req.files.thumbnail) {
-      const thumbnail = req.files.thumbnail;
-      const thumbnailName = `thumbnail_${Date.now()}${path.extname(thumbnail.name)}`;
-      const thumbnailPath = path.join(UPLOAD_DIR, thumbnailName);
-      
-      await thumbnail.mv(thumbnailPath);
-      uploadedThumbnail = `/uploads/${thumbnailName}`;
-    }
-    
-    // Handle video upload
-    let uploadedVideo = video_url || content.video_url;
-    if (req.files && req.files.video) {
-      const video = req.files.video;
-      const videoName = `video_${Date.now()}${path.extname(video.name)}`;
-      const videoPath = path.join(UPLOAD_DIR, videoName);
-      
-      await video.mv(videoPath);
-      uploadedVideo = `/uploads/${videoName}`;
-    }
-    
-    const updatedContent = {
-      title,
-      description: description || content.description || '',
-      category_id: category_id || content.category_id,
-      video_url: uploadedVideo,
-      thumbnail_url: uploadedThumbnail,
-      duration: duration || content.duration,
-      quality: quality || content.quality || 'HD',
-      is_featured: is_featured !== undefined ? (is_featured === true || is_featured === 'true') : content.is_featured,
-      is_active: is_active !== undefined ? (is_active !== false && is_active !== 'false') : content.is_active,
-      tags: tags || content.tags || '',
-      release_date: release_date || content.release_date
-    };
-    
-    const result = await Content.update(id, updatedContent);
-    res.json(result);
+
+    const updatedContent = await Content.update(id, {
+      title: req.body.title.trim(),
+      description: req.body.description !== undefined ? req.body.description : current.description,
+      category_id: req.body.category_id === '' ? null : (req.body.category_id !== undefined ? req.body.category_id : current.category_id),
+      video_url: uploadedVideo.trim(),
+      thumbnail_url: uploadedThumbnail || null,
+      duration: req.body.duration !== undefined ? (req.body.duration || null) : current.duration,
+      quality: req.body.quality || current.quality || 'HD',
+      is_featured: req.body.is_featured !== undefined ? asBoolean(req.body.is_featured) : Boolean(current.is_featured),
+      is_active: req.body.is_active !== undefined ? asBoolean(req.body.is_active) : Boolean(current.is_active),
+      tags: req.body.tags !== undefined ? req.body.tags : current.tags,
+      release_date: req.body.release_date !== undefined ? (req.body.release_date || null) : current.release_date
+    });
+
+    res.json(updatedContent);
   } catch (err) {
     console.error('Content update error:', err);
     res.status(500).json({ error: err.message || 'Failed to update content' });
   }
 });
 
-// DELETE content
 router.delete('/:id', async (req, res) => {
   try {
-    const content = await Content.getById(req.params.id);
-    if (!content) {
-      return res.status(404).json({ error: 'Content not found' });
-    }
-    
-    const result = await Content.delete(req.params.id);
-    res.json(result);
+    const current = await Content.getById(req.params.id, true);
+    if (!current) return res.status(404).json({ error: 'Content not found' });
+    res.json(await Content.delete(req.params.id));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// POST increment views
 router.post('/:id/views', async (req, res) => {
   try {
-    const content = await Content.getById(req.params.id);
-    if (!content) {
-      return res.status(404).json({ error: 'Content not found' });
-    }
-    
-    const result = await Content.incrementViews(req.params.id);
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// GET search content
-router.get('/search/:query', async (req, res) => {
-  try {
-    const content = await Content.search(req.params.query);
-    res.json(content);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// GET content stats
-router.get('/stats', async (req, res) => {
-  try {
-    const stats = await Content.getStats();
-    res.json(stats);
+    const current = await Content.getById(req.params.id);
+    if (!current) return res.status(404).json({ error: 'Content not found' });
+    res.json(await Content.incrementViews(req.params.id));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

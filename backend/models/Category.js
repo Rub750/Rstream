@@ -1,11 +1,12 @@
 const db = require('./database').getDb();
 
 class Category {
-  static getAll() {
+  static getAll(includeInactive = false) {
     return new Promise((resolve, reject) => {
+      const activeClause = includeInactive ? '' : 'WHERE is_active = 1';
       db.all(`
-        SELECT * FROM categories 
-        WHERE is_active = 1 
+        SELECT * FROM categories
+        ${activeClause}
         ORDER BY order_index ASC, name ASC
       `, (err, rows) => {
         if (err) return reject(err);
@@ -14,11 +15,12 @@ class Category {
     });
   }
 
-  static getById(id) {
+  static getById(id, includeInactive = false) {
     return new Promise((resolve, reject) => {
+      const activeClause = includeInactive ? '' : 'AND is_active = 1';
       db.get(`
-        SELECT * FROM categories 
-        WHERE id = ? AND is_active = 1
+        SELECT * FROM categories
+        WHERE id = ? ${activeClause}
       `, [id], (err, row) => {
         if (err) return reject(err);
         resolve(row);
@@ -26,11 +28,12 @@ class Category {
     });
   }
 
-  static getByName(name) {
+  static getByName(name, includeInactive = false) {
     return new Promise((resolve, reject) => {
+      const activeClause = includeInactive ? '' : 'AND is_active = 1';
       db.get(`
-        SELECT * FROM categories 
-        WHERE name = ? AND is_active = 1
+        SELECT * FROM categories
+        WHERE name = ? ${activeClause}
       `, [name], (err, row) => {
         if (err) return reject(err);
         resolve(row);
@@ -41,11 +44,10 @@ class Category {
   static create(category) {
     return new Promise((resolve, reject) => {
       const { name, description, color, icon, order_index } = category;
-      
       db.run(`
-        INSERT INTO categories (name, description, color, icon, order_index) 
+        INSERT INTO categories (name, description, color, icon, order_index)
         VALUES (?, ?, ?, ?, ?)
-      `, [name, description, color, icon, order_index || 0], function(err) {
+      `, [name, description || '', color || '#FF5733', icon || 'film', Number.isFinite(Number(order_index)) ? Number(order_index) : 0], function(err) {
         if (err) return reject(err);
         resolve({ id: this.lastID, ...category });
       });
@@ -55,14 +57,13 @@ class Category {
   static update(id, category) {
     return new Promise((resolve, reject) => {
       const { name, description, color, icon, order_index, is_active } = category;
-      
       db.run(`
-        UPDATE categories 
+        UPDATE categories
         SET name = ?, description = ?, color = ?, icon = ?, order_index = ?, is_active = ?
         WHERE id = ?
       `, [name, description, color, icon, order_index, is_active, id], function(err) {
         if (err) return reject(err);
-        resolve({ id, ...category });
+        resolve({ id: Number(id), ...category });
       });
     });
   }
@@ -71,36 +72,58 @@ class Category {
     return new Promise((resolve, reject) => {
       db.run(`UPDATE categories SET is_active = 0 WHERE id = ?`, [id], function(err) {
         if (err) return reject(err);
-        resolve({ id, deleted: true });
+        resolve({ id: Number(id), deleted: true });
       });
     });
   }
 
   static reorder(categories) {
     return new Promise((resolve, reject) => {
-      const transactions = categories.map((cat, index) => {
-        return new Promise((resolve, reject) => {
-          db.run(`UPDATE categories SET order_index = ? WHERE id = ?`, [index, cat.id], (err) => {
-            if (err) return reject(err);
-            resolve();
+      db.serialize(() => {
+        db.run('BEGIN TRANSACTION', (beginErr) => {
+          if (beginErr) return reject(beginErr);
+          const stmt = db.prepare('UPDATE categories SET order_index = ? WHERE id = ?');
+          let pending = categories.length;
+
+          if (pending === 0) {
+            stmt.finalize(() => db.run('COMMIT', (commitErr) => commitErr ? reject(commitErr) : resolve({ success: true, message: 'Categories reordered' })));
+            return;
+          }
+
+          let failed = false;
+          categories.forEach((cat, index) => {
+            stmt.run([index, cat.id], (err) => {
+              if (failed) return;
+              if (err) {
+                failed = true;
+                stmt.finalize(() => db.run('ROLLBACK', () => reject(err)));
+                return;
+              }
+              pending -= 1;
+              if (pending === 0) {
+                stmt.finalize((finalizeErr) => {
+                  if (finalizeErr) return db.run('ROLLBACK', () => reject(finalizeErr));
+                  db.run('COMMIT', (commitErr) => {
+                    if (commitErr) return db.run('ROLLBACK', () => reject(commitErr));
+                    resolve({ success: true, message: 'Categories reordered' });
+                  });
+                });
+              }
+            });
           });
         });
       });
-      
-      Promise.all(transactions)
-        .then(() => resolve({ success: true, message: 'Categories reordered' }))
-        .catch(reject);
     });
   }
 
   static getContentCount(categoryId) {
     return new Promise((resolve, reject) => {
       db.get(`
-        SELECT COUNT(*) as count FROM content 
+        SELECT COUNT(*) as count FROM content
         WHERE category_id = ? AND is_active = 1
       `, [categoryId], (err, row) => {
         if (err) return reject(err);
-        resolve(row.count);
+        resolve(row ? row.count : 0);
       });
     });
   }
