@@ -131,6 +131,7 @@ const utils = {
 const api = {
   async fetch(endpoint, options = {}) {
     const response = await fetch(`${API_BASE}${endpoint}`, {
+      credentials: 'include',
       headers: { Accept: 'application/json', ...options.headers },
       ...options
     });
@@ -215,8 +216,8 @@ const renderer = {
     const root = document.documentElement;
     if (settings.primary_color) root.style.setProperty('--primary-color', settings.primary_color);
     if (settings.secondary_color) root.style.setProperty('--secondary-color', settings.secondary_color);
-    if (settings.background_color) root.style.setProperty('--bg-primary', settings.background_color);
-    if (settings.text_color) root.style.setProperty('--text-primary', settings.text_color);
+    if (settings.background_color) root.style.setProperty('--configured-bg-primary', settings.background_color);
+    if (settings.text_color) root.style.setProperty('--configured-text-primary', settings.text_color);
 
     elements.siteName.textContent = settings.site_name || 'Rstream';
     elements.footerSiteName.textContent = settings.site_name || 'Rstream';

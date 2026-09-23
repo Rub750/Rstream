@@ -15,6 +15,8 @@
     --admin-bg-tertiary: #333333;
     --admin-bg-card: #252525;
     --admin-bg-modal: rgba(0, 0, 0, 0.9);
+    --admin-configured-bg-primary: #1a1a1a;
+    --admin-configured-text-primary: #ffffff;
     
     /* Text Colors */
     --admin-text-primary: #ffffff;
@@ -80,6 +82,17 @@
     --admin-z-modal: 500;
 }
 
+/* ===== Dark Theme ===== */
+[data-theme="dark"] {
+    --admin-bg-primary: var(--admin-configured-bg-primary, #1a1a1a);
+    --admin-bg-secondary: #252525;
+    --admin-bg-tertiary: #333333;
+    --admin-bg-card: #252525;
+    --admin-text-primary: var(--admin-configured-text-primary, #ffffff);
+    --admin-text-secondary: #b0b0b0;
+    --admin-text-tertiary: #808080;
+}
+
 /* ===== Light Theme ===== */
 [data-theme="light"] {
     --admin-bg-primary: #f5f5f5;
@@ -88,7 +101,8 @@
     --admin-bg-card: #ffffff;
     --admin-text-primary: #1a1a1a;
     --admin-text-secondary: #4a4a4a;
-    --admin-text-tertiary: #7a7a7a;
+    --admin-text-tertiary: #6b7280;
+    --admin-bg-modal: rgba(15, 23, 42, 0.45);
     --admin-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
     --admin-shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
     --admin-shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.15);

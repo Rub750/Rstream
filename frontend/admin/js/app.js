@@ -120,7 +120,7 @@ const api = {
     const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
     if (!isFormData && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
 
-    const response = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
+    const response = await fetch(`${API_BASE}${endpoint}`, { credentials: 'include', ...options, headers });
     const text = await response.text();
     let payload = {};
     if (text) {
@@ -128,6 +128,10 @@ const api = {
     }
 
     if (!response.ok) {
+      if (response.status === 401 && !endpoint.startsWith('/auth/')) {
+        window.location.replace('/admin');
+        throw new Error('Session administrateur expirée.');
+      }
       const message = payload.error || payload.message || `Erreur API (${response.status})`;
       throw new Error(message);
     }
@@ -189,7 +193,7 @@ const navigation = {
 
     $('logout-link')?.addEventListener('click', (event) => {
       event.preventDefault();
-      window.location.href = getPublicSiteUrl();
+      api.fetch('/auth/logout', { method: 'POST' }).catch(() => {}).finally(() => { window.location.replace('/admin'); });
     });
   }
 };
@@ -555,8 +559,8 @@ const settingsManager = {
     const root = document.documentElement;
     root.style.setProperty('--admin-primary-color', $('primary-color').value);
     root.style.setProperty('--admin-secondary-color', $('secondary-color').value);
-    root.style.setProperty('--admin-bg-primary', $('background-color').value);
-    root.style.setProperty('--admin-text-primary', $('text-color').value);
+    root.style.setProperty('--admin-configured-bg-primary', $('background-color').value);
+    root.style.setProperty('--admin-configured-text-primary', $('text-color').value);
     $('primary-color-value').textContent = $('primary-color').value.toUpperCase();
     $('secondary-color-value').textContent = $('secondary-color').value.toUpperCase();
     $('background-color-value').textContent = $('background-color').value.toUpperCase();

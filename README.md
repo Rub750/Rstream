@@ -123,6 +123,14 @@ Le serveur démarrera sur le port 3002 par défaut.
 - **Site de streaming** : http://localhost:3002/streaming
 - **Panneau d'administration** : http://localhost:3002/admin
 
+Le panneau d’administration est protégé côté serveur. Configurez `ADMIN_PASSWORD` avant de démarrer le serveur :
+
+```bash
+ADMIN_PASSWORD='un-mot-de-passe-long-et-unique' npm start
+```
+
+Pour un déploiement, définissez `ADMIN_PASSWORD` dans les variables d’environnement de l’hébergeur et ne commitez jamais le mot de passe. Si le frontend et l’API utilisent des origines différentes, renseignez aussi `RSTREAM_ALLOWED_ORIGINS` avec les origines autorisées.
+
 ## 📦 Scripts disponibles
 
 | Script | Description |
@@ -250,7 +258,7 @@ La base de données SQLite est automatiquement créée au premier démarrage dan
 
 ## 🔒 Sécurité
 
-- **Pas d'authentification** : Pour l'instant, le panneau d'administration est accessible sans authentification. Pour une utilisation en production, il est fortement recommandé d'ajouter un système d'authentification.
+- **Authentification administrateur** : Le panneau d’administration exige `ADMIN_PASSWORD`, utilise une session HttpOnly à durée limitée et protège les opérations d’écriture de l’API. Les tentatives de connexion sont limitées pour réduire les attaques par force brute.
 - **CORS** : Le backend est configuré pour accepter les requêtes CORS depuis les origines configurées.
 - **Validation des entrées** : Toutes les entrées utilisateur sont validées côté serveur.
 
