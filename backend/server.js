@@ -65,7 +65,10 @@ const adminLoginPage = `<!doctype html>
 <script>const form=document.getElementById('login'),password=document.getElementById('password'),button=document.getElementById('submit'),error=document.getElementById('error');form.addEventListener('submit',async e=>{e.preventDefault();error.textContent='';button.disabled=true;try{const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({password:password.value})});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||'Connexion impossible');window.location.replace('/admin/')}catch(err){error.textContent=err.message;password.select()}finally{button.disabled=false}});</script></body></html>`;
 
 app.get('/admin', (req, res) => {
-  if (isAuthenticated(req)) return res.sendFile(path.join(adminRoot, 'index.html'));
+  if (isAuthenticated(req)) {
+    res.set('Cache-Control', 'no-store');
+    return res.sendFile(path.join(adminRoot, 'index.html'));
+  }
   res.set('Cache-Control', 'no-store');
   return res.status(401).send(adminLoginPage);
 });
@@ -74,7 +77,7 @@ app.get('/admin/', (req, res) => {
   res.set('Cache-Control', 'no-store');
   return res.status(401).send(adminLoginPage);
 });
-app.use('/admin', requireAdminPage, express.static(adminRoot, { extensions: ['html'] }));
+app.use('/admin', requireAdminPage, (req, res, next) => { res.set('Cache-Control', 'no-store'); next(); }, express.static(adminRoot, { extensions: ['html'] }));
 
 app.get('/', (req, res) => res.redirect('/streaming/'));
 app.get('/api', (req, res) => res.json({ message: 'Rstream API', version: '1.0.0' }));
