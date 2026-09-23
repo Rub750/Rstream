@@ -129,7 +129,7 @@ Le panneau d’administration est protégé côté serveur. Configurez `ADMIN_PA
 ADMIN_PASSWORD='un-mot-de-passe-long-et-unique' npm start
 ```
 
-Pour un déploiement, définissez `ADMIN_PASSWORD` dans les variables d’environnement de l’hébergeur et ne commitez jamais le mot de passe.
+Pour un déploiement, définissez `ADMIN_PASSWORD` dans les variables d’environnement de l’hébergeur et ne commitez jamais le mot de passe. Si le frontend et l’API utilisent des origines différentes, renseignez aussi `RSTREAM_ALLOWED_ORIGINS` avec les origines autorisées.
 
 ## 📦 Scripts disponibles
 
