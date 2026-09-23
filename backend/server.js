@@ -73,7 +73,10 @@ app.get('/admin', (req, res) => {
   return res.status(401).send(adminLoginPage);
 });
 app.get('/admin/', (req, res) => {
-  if (isAuthenticated(req)) return res.sendFile(path.join(adminRoot, 'index.html'));
+  if (isAuthenticated(req)) {
+    res.set('Cache-Control', 'no-store');
+    return res.sendFile(path.join(adminRoot, 'index.html'));
+  }
   res.set('Cache-Control', 'no-store');
   return res.status(401).send(adminLoginPage);
 });
