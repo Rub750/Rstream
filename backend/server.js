@@ -11,39 +11,19 @@ const PORT = Number(process.env.PORT) || 3002;
 
 app.disable('x-powered-by');
 
-const configuredOrigins = (process.env.RSTREAM_ALLOWED_ORIGINS || '')
-  .split(',')
-  .map(value => value.trim())
-  .filter(Boolean);
-const allowedOrigins = new Set([
-  `http://localhost:3000`,
-  `http://127.0.0.1:3000`,
-  `http://localhost:3001`,
-  `http://127.0.0.1:3001`,
-  `http://localhost:${PORT}`,
-  `http://127.0.0.1:${PORT}`,
-  `http://localhost:${PORT}/admin`,
-  `http://127.0.0.1:${PORT}/admin`,
-  `http://localhost:${PORT}/streaming`,
-  `http://127.0.0.1:${PORT}/streaming`,
-  ...configuredOrigins
-]);
+// CORS configuration - Allow all origins in development for simplicity
+const isProduction = process.env.NODE_ENV === 'production';
 
-app.use(cors({
-  origin(origin, callback) {
-    // Allow requests without origin (like from same domain or mobile apps)
-    if (!origin) return callback(null, true);
-    
-    // Allow all localhost origins for development
-    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
-      return callback(null, true);
-    }
-    
-    if (allowedOrigins.has(origin)) return callback(null, true);
-    return callback(new Error('CORS origin not allowed'));
-  },
+// In production, use configured origins. In development, allow all.
+const corsOptions = isProduction ? {
+  origin: (process.env.RSTREAM_ALLOWED_ORIGINS || '').split(',').map(v => v.trim()).filter(Boolean),
   credentials: true
-}));
+} : {
+  origin: true, // Allow all origins in development
+  credentials: true
+};
+
+app.use(cors(corsOptions));
 app.use(bodyParser.json({ limit: '2mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '2mb' }));
 app.use(fileUpload({
@@ -55,13 +35,16 @@ app.use(fileUpload({
 app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
+// Also serve uploads from root for direct access
+app.use(express.static(path.join(__dirname, 'public/uploads')));
+
 const contentRoutes = require('./routes/content');
 const categoryRoutes = require('./routes/category');
 const settingsRoutes = require('./routes/settings');
 
-app.post('/api/auth/login', cors({ origin: true, credentials: true }), login);
-app.post('/api/auth/logout', cors({ origin: true, credentials: true }), logout);
-app.get('/api/auth/session', cors({ origin: true, credentials: true }), sessionStatus);
+app.post('/api/auth/login', login);
+app.post('/api/auth/logout', logout);
+app.get('/api/auth/session', sessionStatus);
 
 app.use('/api/content', adminWriteGuard, contentRoutes);
 app.use('/api/categories', adminWriteGuard, categoryRoutes);
@@ -76,7 +59,7 @@ const adminLoginPage = `<!doctype html>
 <body><main class="card"><h1>Rstream Admin</h1><p>Connectez-vous pour accéder au panneau d’administration.</p><form id="login"><label for="password">Mot de passe administrateur</label><input id="password" name="password" type="password" autocomplete="current-password" required autofocus><button id="submit" type="submit">Se connecter</button><div id="error" class="error" role="alert"></div></form></main>
 <script>const form=document.getElementById('login'),password=document.getElementById('password'),button=document.getElementById('submit'),error=document.getElementById('error');form.addEventListener('submit',async e=>{e.preventDefault();error.textContent='';button.disabled=true;try{const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({password:password.value})});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||'Connexion impossible');window.location.replace('/admin/')}catch(err){error.textContent=err.message;password.select()}finally{button.disabled=false}});</script></body></html>`;
 
-app.get('/admin', cors({ origin: true, credentials: true }), (req, res) => {
+app.get('/admin', (req, res) => {
   if (isAuthenticated(req)) {
     res.set('Cache-Control', 'no-store');
     return res.sendFile(path.join(adminRoot, 'index.html'));
@@ -84,7 +67,7 @@ app.get('/admin', cors({ origin: true, credentials: true }), (req, res) => {
   res.set('Cache-Control', 'no-store');
   return res.status(401).send(adminLoginPage);
 });
-app.get('/admin/', cors({ origin: true, credentials: true }), (req, res) => {
+app.get('/admin/', (req, res) => {
   if (isAuthenticated(req)) {
     res.set('Cache-Control', 'no-store');
     return res.sendFile(path.join(adminRoot, 'index.html'));
