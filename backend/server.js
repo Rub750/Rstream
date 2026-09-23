@@ -11,18 +11,23 @@ const PORT = Number(process.env.PORT) || 3002;
 
 app.disable('x-powered-by');
 
+const configuredOrigins = (process.env.RSTREAM_ALLOWED_ORIGINS || '')
+  .split(',')
+  .map(value => value.trim())
+  .filter(Boolean);
 const allowedOrigins = new Set([
   `http://localhost:3000`,
   `http://127.0.0.1:3000`,
   `http://localhost:3001`,
   `http://127.0.0.1:3001`,
   `http://localhost:${PORT}`,
-  `http://127.0.0.1:${PORT}`
+  `http://127.0.0.1:${PORT}`,
+  ...configuredOrigins
 ]);
 
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || allowedOrigins.has(origin) || origin === `${req.protocol}://${req.get('host')}`) return callback(null, true);
+    if (!origin || allowedOrigins.has(origin)) return callback(null, true);
     return callback(new Error('CORS origin not allowed'));
   },
   credentials: true
