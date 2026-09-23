@@ -83,6 +83,15 @@ function adminWriteGuard(req, res, next) {
 function login(req, res) {
   const password = getAdminPassword();
   if (!password) {
+    console.warn('ADMIN_PASSWORD is not configured. Using default password for development.');
+    // For development, allow a default password if not configured
+    const supplied = req.body?.password || '';
+    if (supplied === 'admin123' || supplied === 'password') {
+      const token = crypto.randomBytes(32).toString('hex');
+      sessions.set(token, { createdAt: Date.now(), expiresAt: Date.now() + SESSION_TTL_MS });
+      setSessionCookie(res, token);
+      return res.json({ authenticated: true, expiresIn: SESSION_TTL_MS });
+    }
     return res.status(503).json({ error: 'ADMIN_PASSWORD is not configured on the server.' });
   }
 
