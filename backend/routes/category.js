@@ -100,11 +100,6 @@ router.delete('/:id', async (req, res) => {
     const category = await Category.getById(req.params.id, true);
     if (!category) return res.status(404).json({ error: 'Category not found' });
 
-    const contentCount = await Category.getContentCount(req.params.id);
-    if (contentCount > 0) {
-      return res.status(400).json({ error: 'Cannot delete category with content. Move or delete content first.' });
-    }
-
     res.json(await Category.delete(req.params.id));
   } catch (err) {
     res.status(500).json({ error: err.message });
