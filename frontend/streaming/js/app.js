@@ -411,13 +411,8 @@ const maintenance = {
     elements.maintenanceModal.classList.add('active');
     document.body.style.overflow = 'hidden';
   },
-  hide() {
-    elements.maintenanceModal.classList.remove('active');
-    if (!elements.videoModal.classList.contains('active')) document.body.style.overflow = '';
-  },
   init() {
     elements.refreshBtn?.addEventListener('click', () => window.location.reload());
-    elements.maintenanceModal?.addEventListener('click', event => { if (event.target === elements.maintenanceModal) this.hide(); });
   }
 };
 
@@ -533,10 +528,16 @@ async function init() {
 }
 
 document.addEventListener('keydown', event => {
+  if (elements.maintenanceModal.classList.contains('active')) {
+    // Maintenance mode is intentionally non-dismissible: only leaving maintenance mode
+    // from the admin panel makes the public site available again.
+    event.preventDefault();
+    event.stopPropagation();
+    return;
+  }
   if (event.key !== 'Escape') return;
   videoModal.close();
   info.close();
-  if (elements.maintenanceModal.classList.contains('active')) maintenance.hide();
 });
 
 document.addEventListener('DOMContentLoaded', init);
