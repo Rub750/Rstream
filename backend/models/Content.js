@@ -161,8 +161,9 @@ class Content {
 
   static delete(id) {
     return new Promise((resolve, reject) => {
-      db.run(`UPDATE content SET is_active = 0 WHERE id = ?`, [id], function(err) {
+      db.run(`DELETE FROM content WHERE id = ?`, [id], function(err) {
         if (err) return reject(err);
+        if (this.changes === 0) return reject(new Error('Content not found'));
         resolve({ id: Number(id), deleted: true });
       });
     });

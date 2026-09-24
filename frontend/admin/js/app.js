@@ -12,6 +12,15 @@ const API_ORIGIN = window.RSTREAM_API_ORIGIN || (
 const API_BASE = `${API_ORIGIN}/api`;
 const CONTENT_PAGE_SIZE = 10;
 
+const CATEGORY_ICONS = [
+  ['film', 'Film'], ['tv', 'Télévision'], ['video', 'Vidéo'], ['clapperboard', 'Cinéma'],
+  ['book', 'Livre'], ['music', 'Musique'], ['gamepad', 'Jeux vidéo'], ['futbol', 'Sport'],
+  ['heart', 'Favoris'], ['star', 'Star'], ['fire', 'Tendance'], ['ghost', 'Fantastique'],
+  ['rocket', 'Science-fiction'], ['car', 'Action'], ['plane', 'Voyage'], ['camera', 'Photo'],
+  ['image', 'Images'], ['folder', 'Collection'], ['trophy', 'Compétition'], ['microphone', 'Audio'],
+  ['headphones', 'Concerts'], ['podcast', 'Podcast']
+];
+
 const state = {
   currentSection: 'dashboard',
   theme: localStorage.getItem('admin-theme') || 'dark',
@@ -357,7 +366,10 @@ const contentManager = {
     try {
       if (state.deleteType === 'category') {
         await api.deleteCategory(state.deleteItem);
-        await categoryManager.loadCategories();
+        await Promise.all([
+          categoryManager.loadCategories(),
+          this.loadContent()
+        ]);
       } else {
         await api.deleteContent(state.deleteItem);
         await this.loadContent();
@@ -454,6 +466,7 @@ const categoryManager = {
     $('category-icon').value = category?.icon || 'film';
     $('category-active').checked = category ? Boolean(category.is_active) : true;
     updateColorValue('category-color', 'category-color-value');
+    renderCategoryIconPicker($('category-icon').value);
     modal.open('category-modal');
   },
   async saveCategory() {
@@ -666,10 +679,27 @@ const statsManager = {
     const canvas = $(id);
     if (!canvas || typeof Chart === 'undefined') return;
 
+    const palette = [
+      '#FF6B6B', '#4D96FF', '#6BCB77', '#FFD93D', '#B983FF',
+      '#FF8E72', '#00C2A8', '#FF6FB5', '#845EC2', '#2C73D2',
+      '#008F7A', '#F9F871', '#D65DB1', '#FF9671', '#00B8A9',
+      '#C34A36', '#4B4453', '#FFC75F', '#9BDE7E', '#0081CF'
+    ];
+    const colors = data.map((_, index) => palette[index % palette.length]);
+
     state.charts[id]?.destroy();
     state.charts[id] = new Chart(canvas, {
       type,
-      data: { labels, datasets: [{ label, data }] },
+      data: {
+        labels,
+        datasets: [{
+          label,
+          data,
+          backgroundColor: colors,
+          borderColor: colors,
+          borderWidth: 1
+        }]
+      },
       options: {
         responsive: true,
         maintainAspectRatio: false,
@@ -717,6 +747,36 @@ function previewFile(input, imageId, labelId) {
     $(imageId).style.display = '';
   };
   reader.readAsDataURL(file);
+}
+
+function renderCategoryIconPicker(selectedIcon = 'film') {
+  const picker = $('category-icon-picker');
+  const input = $('category-icon');
+  if (!picker || !input) return;
+
+  const available = new Set(CATEGORY_ICONS.map(([name]) => name));
+  const selected = available.has(selectedIcon) ? selectedIcon : 'film';
+  input.value = selected;
+
+  picker.innerHTML = CATEGORY_ICONS.map(([name, label]) => {
+    const isSelected = name === selected;
+    return '<button type="button" class="icon-option' + (isSelected ? ' selected' : '') + '"' +
+      ' data-icon="' + name + '" title="' + utils.escapeHtml(label) + '"' +
+      ' aria-label="' + utils.escapeHtml(label) + '" aria-pressed="' + (isSelected ? 'true' : 'false') + '">' +
+      '<i class="fas fa-' + name + '" aria-hidden="true"></i>' +
+      '<span>' + utils.escapeHtml(label) + '</span></button>';
+  }).join('');
+
+  picker.querySelectorAll('.icon-option').forEach(button => {
+    button.addEventListener('click', () => {
+      input.value = button.dataset.icon || 'film';
+      picker.querySelectorAll('.icon-option').forEach(option => {
+        const isSelected = option === button;
+        option.classList.toggle('selected', isSelected);
+        option.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+      });
+    });
+  });
 }
 
 function populateCategoryControls() {
@@ -817,6 +877,7 @@ async function init() {
   contentManager.init();
   categoryManager.init();
   settingsManager.init();
+  renderCategoryIconPicker($('category-icon')?.value || 'film');
   statsManager.load();
 
   elements.refreshBtn?.addEventListener('click', () => window.location.reload());

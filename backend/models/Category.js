@@ -70,9 +70,24 @@ class Category {
 
   static delete(id) {
     return new Promise((resolve, reject) => {
-      db.run(`UPDATE categories SET is_active = 0 WHERE id = ?`, [id], function(err) {
-        if (err) return reject(err);
-        resolve({ id: Number(id), deleted: true });
+      db.serialize(() => {
+        db.run('BEGIN TRANSACTION', beginErr => {
+          if (beginErr) return reject(beginErr);
+
+          db.run('UPDATE content SET category_id = NULL WHERE category_id = ?', [id], detachErr => {
+            if (detachErr) return db.run('ROLLBACK', () => reject(detachErr));
+
+            db.run('DELETE FROM categories WHERE id = ?', [id], function(deleteErr) {
+              if (deleteErr) return db.run('ROLLBACK', () => reject(deleteErr));
+              if (this.changes === 0) return db.run('ROLLBACK', () => reject(new Error('Category not found')));
+
+              db.run('COMMIT', commitErr => {
+                if (commitErr) return db.run('ROLLBACK', () => reject(commitErr));
+                resolve({ id: Number(id), deleted: true });
+              });
+            });
+          });
+        });
       });
     });
   }

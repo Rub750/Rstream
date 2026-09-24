@@ -802,18 +802,9 @@
                         </div>
                         <div class="form-group">
                             <label for="category-icon">Icône</label>
-                            <select id="category-icon" name="icon">
-                                <option value="film">film</option>
-                                <option value="tv">tv</option>
-                                <option value="book">book</option>
-                                <option value="music">music</option>
-                                <option value="game">game</option>
-                                <option value="sport">sport</option>
-                                <option value="animation">animation</option>
-                                <option value="heart">heart</option>
-                                <option value="star">star</option>
-                                <option value="fire">fire</option>
-                            </select>
+                            <input type="hidden" id="category-icon" name="icon" value="film">
+                            <div id="category-icon-picker" class="icon-picker" role="group" aria-label="Choisir une icône"></div>
+                            <p class="form-hint">Cliquez sur une icône pour la sélectionner.</p>
                         </div>
                     </div>
                     <div class="form-group">
