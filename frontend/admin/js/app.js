@@ -665,11 +665,18 @@ const statsManager = {
   renderChart(id, type, labels, data, label) {
     const canvas = $(id);
     if (!canvas || typeof Chart === 'undefined') return;
+
     state.charts[id]?.destroy();
     state.charts[id] = new Chart(canvas, {
       type,
       data: { labels, datasets: [{ label, data }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: type === 'doughnut' } } }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        resizeDelay: 50,
+        plugins: { legend: { display: type === 'doughnut' } }
+      }
     });
   },
   renderTables(active) {
@@ -739,6 +746,36 @@ function enableDragSort(container) {
   });
 }
 
+function bindToggleControls() {
+  document.querySelectorAll('.toggle-switch').forEach(toggle => {
+    const input = toggle.querySelector('input[type="checkbox"]');
+    const slider = toggle.querySelector('.toggle-slider');
+    if (!input || !slider || slider.dataset.bound === '1') return;
+
+    slider.dataset.bound = '1';
+    slider.setAttribute('role', 'switch');
+    slider.setAttribute('tabindex', '0');
+
+    const syncState = () => {
+      slider.setAttribute('aria-checked', input.checked ? 'true' : 'false');
+    };
+
+    const toggleValue = (event) => {
+      event.preventDefault();
+      input.checked = !input.checked;
+      syncState();
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
+    slider.addEventListener('click', toggleValue);
+    slider.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') toggleValue(event);
+    });
+    input.addEventListener('change', syncState);
+    syncState();
+  });
+}
+
 function bindModalControls() {
   modal.closeOnBackdrop('content-modal');
   modal.closeOnBackdrop('category-modal');
@@ -776,6 +813,7 @@ async function init() {
   navigation.init();
   notifications.init();
   bindModalControls();
+  bindToggleControls();
   contentManager.init();
   categoryManager.init();
   settingsManager.init();
