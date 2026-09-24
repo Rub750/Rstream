@@ -7,6 +7,31 @@ const fs = require('fs');
 const UPLOAD_DIR = path.join(__dirname, '../public/uploads');
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
+
+const removeLocalUpload = async (value) => {
+  if (!value || typeof value !== 'string') return;
+  let pathname = value;
+
+  try {
+    pathname = new URL(value, 'http://localhost').pathname;
+  } catch {
+    return;
+  }
+
+  if (!pathname.startsWith('/uploads/')) return;
+  const filename = path.basename(pathname);
+  if (!filename || filename === '.' || filename === '..') return;
+
+  const filepath = path.join(UPLOAD_DIR, filename);
+  if (path.dirname(filepath) !== UPLOAD_DIR) return;
+
+  try {
+    await fs.promises.unlink(filepath);
+  } catch (err) {
+    if (err.code !== 'ENOENT') console.warn('Upload cleanup failed:', err.message);
+  }
+};
+
 const asBoolean = (value, fallback = false) => {
   if (value === undefined || value === null || value === '') return fallback;
   return value === true || value === 1 || value === '1' || value === 'true' || value === 'on';
@@ -176,7 +201,12 @@ router.delete('/:id', async (req, res) => {
   try {
     const current = await Content.getById(req.params.id, true);
     if (!current) return res.status(404).json({ error: 'Content not found' });
-    res.json(await Content.delete(req.params.id));
+    const deleted = await Content.delete(req.params.id);
+    await Promise.all([
+      removeLocalUpload(current.video_url),
+      removeLocalUpload(current.thumbnail_url)
+    ]);
+    res.json(deleted);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
