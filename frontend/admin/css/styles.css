@@ -579,6 +579,12 @@ a:hover {
     height: 350px;
 }
 
+.chart-container canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+}
+
 /* ===== Quick Actions ===== */
 .quick-actions {
     background: var(--admin-bg-card);
@@ -1409,6 +1415,11 @@ a:hover {
 .toggle-switch input[type="checkbox"]:checked + .toggle-slider::before {
     background: white;
     transform: translateX(20px);
+}
+
+.toggle-slider:focus-visible {
+    outline: 2px solid var(--admin-primary-color);
+    outline-offset: 2px;
 }
 
 /* ===== Warning Box ===== */
