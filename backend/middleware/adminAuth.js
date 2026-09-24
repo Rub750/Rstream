@@ -2,11 +2,10 @@ const crypto = require('crypto');
 
 const SESSION_COOKIE = 'rstream_admin_session';
 const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
-const MAX_LOGIN_ATTEMPTS = 5;
-const LOCKOUT_MS = 15 * 60 * 1000;
+const LOGIN_COOLDOWN_MS = 2 * 1000;
 
 const sessions = new Map();
-const attempts = new Map();
+const lastLoginAttempt = new Map();
 
 function getAdminPassword() {
   return process.env.ADMIN_PASSWORD || '';
@@ -87,27 +86,29 @@ function login(req, res) {
   }
 
   const ip = req.ip || req.socket.remoteAddress || 'unknown';
-  const current = attempts.get(ip);
-  if (current && current.lockedUntil > Date.now()) {
-    return res.status(429).json({ error: 'Too many login attempts. Try again later.' });
-  }
+  const now = Date.now();
+  const lastAttemptAt = lastLoginAttempt.get(ip) || 0;
+  const elapsed = now - lastAttemptAt;
 
-  const supplied = req.body?.password || '';
-  if (!safeEqual(supplied, password)) {
-    const next = current && current.windowUntil > Date.now()
-      ? { count: current.count + 1, windowUntil: current.windowUntil, lockedUntil: current.lockedUntil }
-      : { count: 1, windowUntil: Date.now() + LOCKOUT_MS, lockedUntil: 0 };
-
-    if (next.count >= MAX_LOGIN_ATTEMPTS) next.lockedUntil = Date.now() + LOCKOUT_MS;
-    attempts.set(ip, next);
-    return res.status(next.lockedUntil ? 429 : 401).json({
-      error: next.lockedUntil ? 'Too many login attempts. Try again later.' : 'Invalid admin password.'
+  if (elapsed < LOGIN_COOLDOWN_MS) {
+    const retryAfterMs = LOGIN_COOLDOWN_MS - elapsed;
+    return res.status(429).json({
+      error: 'Veuillez attendre 2 secondes avant une nouvelle tentative.',
+      retryAfterMs
     });
   }
 
-  attempts.delete(ip);
+  // A failed or successful login starts the same short cooldown.
+  lastLoginAttempt.set(ip, now);
+
+  const supplied = req.body?.password || '';
+  if (!safeEqual(supplied, password)) {
+    return res.status(401).json({ error: 'Invalid admin password.' });
+  }
+
+  lastLoginAttempt.delete(ip);
   const token = crypto.randomBytes(32).toString('hex');
-  sessions.set(token, { createdAt: Date.now(), expiresAt: Date.now() + SESSION_TTL_MS });
+  sessions.set(token, { createdAt: now, expiresAt: now + SESSION_TTL_MS });
   setSessionCookie(res, token);
   return res.json({ authenticated: true, expiresIn: SESSION_TTL_MS });
 }
@@ -128,9 +129,6 @@ setInterval(() => {
   const now = Date.now();
   for (const [token, session] of sessions) {
     if (session.expiresAt <= now) sessions.delete(token);
-  }
-  for (const [ip, attempt] of attempts) {
-    if (attempt.lockedUntil <= now && attempt.windowUntil <= now) attempts.delete(ip);
   }
 }, 10 * 60 * 1000).unref();
 
