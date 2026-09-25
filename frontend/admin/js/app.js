@@ -328,24 +328,34 @@ const contentManager = {
     try {
       const form = $('content-form');
       if (!form.reportValidity()) return;
+      const videoFile = $('content-video-file').files[0];
+      const thumbnailFile = $('content-thumbnail-file').files[0];
+      const videoUrl = $('content-video-url').value.trim();
+      const thumbnailUrl = $('content-thumbnail-url').value.trim();
+      const id = $('content-id').value;
+      if (!videoFile && !videoUrl && !id) {
+        this.showError('Sélectionnez une vidéo ou renseignez une URL de vidéo.');
+        return;
+      }
+      if (!videoFile && !videoUrl && id) {
+        this.showError('Une vidéo existante ou une nouvelle vidéo est nécessaire.');
+        return;
+      }
       const body = new FormData();
       body.append('title', $('content-title').value.trim());
       body.append('category_id', $('content-category').value);
       body.append('description', $('content-description').value);
-      body.append('video_url', $('content-video-url').value.trim());
-      body.append('thumbnail_url', $('content-thumbnail-url').value.trim());
+      body.append('video_url', videoUrl);
+      body.append('thumbnail_url', thumbnailUrl);
       body.append('duration', $('content-duration').value.trim());
       body.append('quality', $('content-quality').value);
       body.append('tags', $('content-tags').value.trim());
       body.append('release_date', $('content-release-date').value);
       body.append('is_featured', $('content-featured').checked ? '1' : '0');
       body.append('is_active', $('content-active').checked ? '1' : '0');
-      const videoFile = $('content-video-file').files[0];
-      const thumbnailFile = $('content-thumbnail-file').files[0];
       if (videoFile) body.append('video', videoFile);
       if (thumbnailFile) body.append('thumbnail', thumbnailFile);
 
-      const id = $('content-id').value;
       if (id) await api.updateContent(id, body); else await api.createContent(body);
       modal.close('content-modal');
       this.showSuccess(id ? 'Contenu mis à jour avec succès.' : 'Contenu créé avec succès.');
