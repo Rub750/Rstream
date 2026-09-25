@@ -5,9 +5,19 @@ const fileUpload = require('express-fileupload');
 const path = require('path');
 const db = require('./models/database');
 const { requireAdminPage, adminWriteGuard, login, logout, sessionStatus, isAuthenticated } = require('./middleware/adminAuth');
+const githubStorage = require('./services/githubStorage');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3002;
+const DATABASE_PATH = path.join(__dirname, '../rstream.db');
+let persistenceQueue = Promise.resolve();
+
+const queueDatabasePersistence = () => {
+  persistenceQueue = persistenceQueue
+    .then(() => githubStorage.persistDatabase(DATABASE_PATH))
+    .catch(error => console.error('GitHub database persistence failed:', error.message));
+  return persistenceQueue;
+};
 
 app.disable('x-powered-by');
 
@@ -46,9 +56,23 @@ app.post('/api/auth/login', login);
 app.post('/api/auth/logout', logout);
 app.get('/api/auth/session', sessionStatus);
 
-app.use('/api/content', adminWriteGuard, contentRoutes);
-app.use('/api/categories', adminWriteGuard, categoryRoutes);
-app.use('/api/settings', adminWriteGuard, settingsRoutes);
+const persistSuccessfulApiWrite = (req, res, next) => {
+  if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) return next();
+  res.on('finish', () => {
+    if (res.statusCode >= 200 && res.statusCode < 300 && githubStorage.isConfigured()) {
+      queueDatabasePersistence();
+    }
+  });
+  next();
+};
+
+app.use('/api/content', persistSuccessfulApiWrite, adminWriteGuard, contentRoutes);
+app.use('/api/categories', persistSuccessfulApiWrite, adminWriteGuard, categoryRoutes);
+app.use('/api/settings', persistSuccessfulApiWrite, adminWriteGuard, settingsRoutes);
+
+if (!githubStorage.isConfigured()) {
+  console.warn('GitHub persistence is disabled: set GITHUB_TOKEN on Render to keep admin uploads and database changes across restarts.');
+}
 
 app.use('/streaming', express.static(path.join(__dirname, '../frontend/streaming'), { extensions: ['html'] }));
 
