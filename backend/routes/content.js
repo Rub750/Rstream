@@ -3,6 +3,7 @@ const router = express.Router();
 const Content = require('../models/Content');
 const path = require('path');
 const fs = require('fs');
+const githubStorage = require('../services/githubStorage');
 
 const UPLOAD_DIR = path.join(__dirname, '../public/uploads');
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
@@ -40,6 +41,7 @@ const asBoolean = (value, fallback = false) => {
 const includeInactive = (req) => req.query.includeInactive === '1' || req.query.includeInactive === 'true';
 
 const moveUpload = async (file, prefix) => {
+  if (githubStorage.isConfigured()) return githubStorage.uploadMedia(file.data, file.name, prefix);
   if (!file) return null;
   const extension = path.extname(file.name || '').toLowerCase();
   const safeExtension = /^[.a-z0-9]+$/.test(extension) ? extension : '';
@@ -204,7 +206,9 @@ router.delete('/:id', async (req, res) => {
     const deleted = await Content.delete(req.params.id);
     await Promise.all([
       removeLocalUpload(current.video_url),
-      removeLocalUpload(current.thumbnail_url)
+      removeLocalUpload(current.thumbnail_url),
+      githubStorage.deleteMedia(current.video_url),
+      githubStorage.deleteMedia(current.thumbnail_url)
     ]);
     res.json(deleted);
   } catch (err) {

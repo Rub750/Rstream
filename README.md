@@ -129,7 +129,9 @@ Le panneau d’administration est protégé côté serveur. Configurez `ADMIN_PA
 ADMIN_PASSWORD='un-mot-de-passe-long-et-unique' npm start
 ```
 
-Pour un déploiement, définissez `ADMIN_PASSWORD` dans les variables d’environnement de l’hébergeur et ne commitez jamais le mot de passe. Si le frontend et l’API utilisent des origines différentes, renseignez aussi `RSTREAM_ALLOWED_ORIGINS` avec les origines autorisées.
+Pour un déploiement, définissez `ADMIN_PASSWORD` dans les variables d’environnement de l’hébergeur et ne commitez jamais le mot de passe.
+
+Sur Render Free, le système de fichiers est éphémère : les uploads et la base SQLite locale disparaissent après un redémarrage ou après les 15 minutes d’inactivité. Pour les conserver, configurez `GITHUB_TOKEN` avec un token GitHub ayant l’accès **Contents: Read and write** au dépôt, ainsi que `GITHUB_REPOSITORY` si nécessaire. Le token doit rester uniquement dans les variables secrètes de Render. Si le frontend et l’API utilisent des origines différentes, renseignez aussi `RSTREAM_ALLOWED_ORIGINS` avec les origines autorisées.
 
 ## 📦 Scripts disponibles
 
@@ -150,6 +152,11 @@ Créez un fichier `.env` à la racine du projet pour personnaliser la configurat
 ```env
 PORT=3002
 NODE_ENV=development
+# Persistance des uploads et de SQLite sur Render Free
+GITHUB_TOKEN=ghp_votre_token_ici
+GITHUB_REPOSITORY=Rub750/Rstream
+GITHUB_PERSISTENCE_BRANCH=main
+GITHUB_MEDIA_DIR=uploads
 ```
 
 ### Configuration de la base de données
