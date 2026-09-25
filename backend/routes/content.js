@@ -206,7 +206,9 @@ router.delete('/:id', async (req, res) => {
     const deleted = await Content.delete(req.params.id);
     await Promise.all([
       removeLocalUpload(current.video_url),
-      removeLocalUpload(current.thumbnail_url)
+      removeLocalUpload(current.thumbnail_url),
+      githubStorage.deleteMedia(current.video_url),
+      githubStorage.deleteMedia(current.thumbnail_url)
     ]);
     res.json(deleted);
   } catch (err) {
