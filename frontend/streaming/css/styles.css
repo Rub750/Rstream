@@ -695,6 +695,20 @@ a:hover {
     margin-bottom: var(--spacing-md);
 }
 
+.info-message {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: 1.7;
+}
+
+.info-message p {
+    margin: 0 0 var(--spacing-md);
+}
+
+.info-message p:last-child {
+    margin-bottom: 0;
+}
+
 .video-meta {
     display: flex;
     gap: var(--spacing-lg);

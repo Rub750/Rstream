@@ -257,11 +257,19 @@ const renderer = {
 
 const navigation = {
   showSection(sectionName) {
+    const aliases = {
+      'all-featured': 'allFeatured',
+      'all-recent': 'allRecent',
+      'all-popular': 'allPopular',
+      'category-content': 'categoryContent',
+      'search-results': 'searchResults'
+    };
+    const resolvedSection = aliases[sectionName] || sectionName;
     Object.values(sectionElements).flat().forEach(section => section.classList.add('hidden'));
-    if (sectionName === 'home') {
+    if (resolvedSection === 'home') {
       sectionElements.home.forEach(section => section.classList.remove('hidden'));
     } else {
-      (sectionElements[sectionName] || []).forEach(section => section.classList.remove('hidden'));
+      (sectionElements[resolvedSection] || []).forEach(section => section.classList.remove('hidden'));
     }
     document.querySelectorAll('.nav-link').forEach(link => link.classList.toggle('active', link.dataset.section === sectionName));
     state.currentSection = sectionName;
@@ -457,25 +465,57 @@ const info = {
   init() {
     document.querySelectorAll('[data-info]').forEach(link => link.addEventListener('click', event => {
       event.preventDefault();
-      const data = info.copy(link.dataset.info);
-      elements.infoTitle.textContent = data.title;
-      elements.infoMessage.textContent = data.message;
-      elements.infoModal.classList.add('active');
-      document.body.style.overflow = 'hidden';
+      const key = link.dataset.info;
+      if (window.location.hash !== `#${key}`) {
+        window.history.pushState(null, '', `#${key}`);
+      }
+      this.open(key);
     }));
     elements.infoClose?.addEventListener('click', () => this.close());
     elements.infoModal?.addEventListener('click', event => { if (event.target === elements.infoModal) this.close(); });
+    window.addEventListener('hashchange', () => this.handleHash());
+    this.handleHash();
+  },
+  open(key) {
+    const data = this.copy(key);
+    elements.infoTitle.textContent = data.title;
+    elements.infoMessage.innerHTML = data.message;
+    elements.infoModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  },
+  handleHash() {
+    const key = window.location.hash.replace('#', '');
+    if (['about', 'terms', 'privacy', 'contact'].includes(key)) {
+      this.open(key);
+    }
   },
   copy(key) {
+    const siteName = utils.escapeHtml(state.settings.site_name || 'Rstream');
+    const siteDescription = utils.escapeHtml(state.settings.site_description || 'Votre plateforme de streaming');
     return {
-      about: { title: 'À propos de Rstream', message: 'Rstream est une interface de démonstration de plateforme de streaming reliée à son panneau d’administration.' },
-      terms: { title: "Conditions d'utilisation", message: 'Cette version locale fournit les fonctions de navigation, de lecture et de gestion de contenu prévues par le projet. Adaptez les conditions avant toute mise en production.' },
-      privacy: { title: 'Politique de confidentialité', message: 'Cette version ne met pas en place de compte utilisateur. Les données de gestion sont stockées dans la base SQLite du projet.' },
-      contact: { title: 'Contact', message: 'Pour cette version locale, utilisez le panneau d’administration ou ajoutez votre adresse de contact dans le pied de page avant publication.' }
-    }[key] || { title: 'Rstream', message: 'Informations indisponibles.' };
+      about: {
+        title: `À propos de ${siteName}`,
+        message: `<p><strong>${siteName}</strong> est une plateforme de streaming permettant de découvrir et de regarder les contenus publiés sur le site.</p><p>${siteDescription}</p><p>Les contenus, catégories et informations affichés sont gérés depuis le panneau d'administration.</p>`
+      },
+      terms: {
+        title: "Conditions d'utilisation",
+        message: '<p>En utilisant ce site, vous acceptez de l’utiliser uniquement dans le respect des lois applicables et des droits des créateurs et ayants droit.</p><p>Vous ne devez pas tenter de perturber le fonctionnement du service, d’accéder à des zones protégées ou de reproduire et redistribuer des contenus sans autorisation.</p><p>Les contenus et leur disponibilité peuvent être modifiés ou retirés à tout moment.</p>'
+      },
+      privacy: {
+        title: 'Politique de confidentialité',
+        message: '<p>Le site peut traiter des données techniques nécessaires à son fonctionnement, notamment les informations liées aux requêtes et aux statistiques de consultation.</p><p>Aucun compte utilisateur public n’est nécessaire pour consulter les contenus.</p><p>Les données d’administration sont séparées de l’expérience publique du site et ne sont pas destinées à être affichées aux visiteurs.</p>'
+      },
+      contact: {
+        title: 'Contact',
+        message: `<p>Pour toute demande concernant le fonctionnement du site ou un contenu, utilisez le panneau d’administration si vous en avez l’accès.</p><p>Pour publier une adresse de contact publique, ajoutez-la dans les paramètres du site afin qu’elle puisse être affichée ici sans inventer d’adresse.</p>`
+      }
+    }[key] || { title: siteName, message: '<p>Informations indisponibles.</p>' };
   },
   close() {
     elements.infoModal.classList.remove('active');
+    if (window.location.hash.match(/^#(about|terms|privacy|contact)$/)) {
+      window.history.pushState(null, '', window.location.pathname + window.location.search);
+    }
     if (!elements.videoModal.classList.contains('active') && !elements.maintenanceModal.classList.contains('active')) document.body.style.overflow = '';
   }
 };
