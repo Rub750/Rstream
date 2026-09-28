@@ -507,7 +507,7 @@ const info = {
       },
       contact: {
         title: 'Contact',
-        message: `<p>Pour toute demande concernant le fonctionnement du site ou un contenu, utilisez le panneau d’administration si vous en avez l’accès.</p><p>Pour publier une adresse de contact publique, ajoutez-la dans les paramètres du site afin qu’elle puisse être affichée ici sans inventer d’adresse.</p>`
+        message: '<p>Pour toute demande concernant Rstream, vous pouvez nous contacter directement par e-mail.</p><p><a href="mailto:contact@rstream.fr">contact@rstream.fr</a></p>'
       }
     }[key] || { title: siteName, message: '<p>Informations indisponibles.</p>' };
   },
